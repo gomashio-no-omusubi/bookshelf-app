@@ -1,66 +1,303 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 模擬案件\_書籍レビューアプリ BookShelf
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## プロジェクト概要
 
-## About Laravel
+未完成
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 作成者
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- [あなたの名前、またはGitHubユーザー名]
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 使用技術（技術スタック）
 
-## Learning Laravel
+- **言語**: PHP 8.5
+- **フレームワーク**: Laravel 10.x
+- **データベース**: MySQL 8.4
+- **フロントエンド**: Vite, Tailwind CSS ^3.4.0, @tailwindcss/forms
+- **開発ツール**: Docker, Laravel Sail, phpMyAdmin
+- **構成管理**: Docker / Docker Compose
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 開発環境URL
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+- **アプリケーション**: http://localhost
+- **phpMyAdmin**: http://localhost:8080
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## ER図
 
-## Laravel Sponsors
+[※ 基本機能が完成した段階、またはER図を作成したタイミングで、ここにMermaid記法や画像のリンクを貼り付けてください]
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+---
 
-### Premium Partners
+## 開発環境構築手順
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+### 1.Laravelプロジェクトの作成 (Laravel 10.x)
 
-## Contributing
+以下のDockerコマンドを実行して、Laravel 10.xを明示的に指定してプロジェクトを作成します。
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+docker run --rm \
+    -u "$(id -u):$(id -g)" \
+    -v "$(pwd):/var/www/html" \
+    -w /var/www/html \
+    -e COMPOSER_CACHE_DIR=/tmp/composer_cache \
+    laravelsail/php82-composer:latest \
+    composer create-project laravel/laravel:^10.0 task-manager-app
 
-## Code of Conduct
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+_※ **Windowsをお使いの方へ**：以下のコマンドは `WSL（Ubuntu）` のターミナルで実行してください（`PowerShell` では動きません）。_
 
-## Security Vulnerabilities
+### 2. Laravel Sailのインストール
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+プロジェクト作成後、`bookshelf-app` ディレクトリに移動し、Laravel Sailをインストールします。
 
-## License
+```bash
+# プロジェクトディレクトリに移動
+cd bookshelf-app
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+# Laravel Sailをインストール
+docker run --rm \
+    -u "$(id -u):$(id -g)" \
+    -v "$(pwd):/var/www/html" \
+    -w /var/www/html \
+    -e COMPOSER_CACHE_DIR=/tmp/composer_cache \
+    laravelsail/php82-composer:latest \
+    composer require laravel/sail --dev
+
+# Sailの設定ファイルをパブリッシュ (MySQLを選択)
+docker run --rm \
+    -u "$(id -u):$(id -g)" \
+    -v "$(pwd):/var/www/html" \
+    -w /var/www/html \
+    -e COMPOSER_CACHE_DIR=/tmp/composer_cache \
+    laravelsail/php82-composer:latest \
+    php artisan sail:install --with=mysql
+```
+
+_※ **M1/M2/M3 Mac (Apple Silicon) をお使いの方へ**：Apple Silicon搭載のMacでは、`sail up -d` 実行時に `no matching manifest for linux/arm64/v8` エラーが発生する場合があります。その際は、`compose.yaml` を開き、 `mysql` サービスに `platform: 'linux/amd64'` を追加してください。_
+
+```yaml
+mysql:
+    image: "mysql/mysql-server:8.0"
+    platform: "linux/amd64" # ← この行を追加
+    ports: ...
+```
+
+_編集後、保存してから `sail up -d` を実行してください。_
+
+### 3. .env ファイルの設定
+
+`.env` ファイルを開き、データベース接続情報が以下と一致していることを確認します。
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_PORT=3306
+DB_DATABASE=bookshelf_app
+DB_USERNAME=sail
+DB_PASSWORD=password
+```
+
+_**【重要】**：`DB_HOST` には `localhost` や `127.0.0.1` ではなく、必ずDockerのコンテナ名である **`mysql`** を指定してください。これを間違えると、データベースへの接続エラーが発生し、アプリケーションが正常に動作しません。_
+
+### 4. フロントエンドのセットアップ (Vite & Tailwind CSS)
+
+本プロジェクトでは、フロントエンドのスタイリングにTailwind CSSを使用します。  
+以下の手順でセットアップを行ってください。
+
+#### 4-1. NPM依存パッケージのインストール
+
+```bash
+sail npm install
+```
+
+_※ Sailコンテナが起動していることを確認。起動していない場合は `./vendor/bin/sail up -d`を実行_
+
+#### 4-2. Alpine.jsのインストール
+
+```bash
+sail npm install alpinejs
+```
+
+#### 4-3. Tailwind CSSと @tailwindcss/forms プラグインのインストール
+
+```bash
+sail npm install -D tailwindcss@^3.4.0 @tailwindcss/forms postcss autoprefixer
+```
+
+_※ `@tailwindcss/forms` はフォーム要素のスタイルをリセットするLaravel標準プラグインです。_
+
+#### 4-4. 設定ファイルの生成
+
+```bash
+sail npx tailwindcss init -p
+```
+
+#### 4-5. Tailwind CSSのテンプレートパス設定とforms プラグインの有効化
+
+`tailwind.config.js` を開き、中身を以下の内容に書き換えて保存してください。
+
+```javascript
+import defaultTheme from "tailwindcss/defaultTheme";
+import forms from "@tailwindcss/forms";
+
+/** @type {import('tailwindcss').Config} */
+export default {
+    content: [
+        "./vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php",
+        "./storage/framework/views/*.php",
+        "./resources/views/**/*.blade.php",
+    ],
+    theme: {
+        extend: {
+            fontFamily: {
+                sans: ["Figtree", ...defaultTheme.fontFamily.sans],
+            },
+        },
+    },
+    plugins: [forms],
+};
+```
+
+#### 4-6. Vite開発サーバーの起動
+
+デザイン（`CSS/JavaScript`）をリアルタイムで反映させるため、以下のコマンドを実行して開発サーバーを起動します。
+
+```bash
+sail npm run dev
+```
+
+_**【重要】**：アプリケーションのデザインを正しく表示させるため、 **開発中は常にこのコマンドを実行した状態（ターミナルを起動したまま）** にしておいてください。_
+
+### 5. phpMyAdminの追加
+
+`compose.yaml` を開き、`mysql` サービスの後に以下の設定を追加してください。
+
+```yaml
+phpmyadmin:
+    image: "phpmyadmin:latest"
+    ports:
+        - "${FORWARD_PHPMYADMIN_PORT:-8080}:80"
+    environment:
+        PMA_HOST: mysql
+        PMA_USER: "${DB_USERNAME}"
+        PMA_PASSWORD: "${DB_PASSWORD}"
+    networks:
+        - sail
+    depends_on:
+        - mysql
+```
+
+_**【重要】**：YAMLファイルはインデント（字下げ）がずれると正しく動作しません。`phpmyadmin:` の左側のスペース数を、既にある `mysql:` と同じに揃えてください。_
+
+### 6. Sailの起動とエイリアス設定
+
+#### 6-1. Sailをバックグラウンドで起動
+
+```bash
+./vendor/bin/sail up -d
+```
+
+#### 6-2. エイリアスを設定
+
+毎回 `./vendor/bin/sail` と入力するのは面倒なので、エイリアスを設定します。
+
+**Zsh（Mac）の場合：**
+
+```bash
+# エイリアスを設定して 'sail' だけでコマンドを実行できるようにする
+echo "alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'" >> ~/.zshrc
+
+# シェルを再起動するか、新しいターミナルを開いてエイリアスを有効にする
+exec $SHELL
+```
+
+**Bash（Linux）の場合：**
+
+```bash
+# エイリアスを設定して 'sail' だけでコマンドを実行できるようにする
+echo "alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'" >> ~/.bashrc
+
+# シェルを再起動するか、新しいターミナルを開いてエイリアスを有効にする
+exec $SHELL
+```
+
+### 7. アプリケーションキーの生成
+
+```bash
+sail artisan key:generate
+```
+
+### 8. データベースのマイグレーションと初期データ投入
+
+以下のコマンドでテーブルを作成し、初期データを投入します。
+
+```bash
+sail artisan migrate --seed
+```
+
+_※ 既存のデータベースをリセットしたい場合は以下を実行してください。_
+
+```bash
+sail artisan migrate:fresh --seed
+```
+
+_**※ 日本語化（バリデーション・認証メッセージ）について（基本）**： `config/app.php` の `locale` を `ja` にし、`lang/ja/` にメッセージファイルを手動配置して行います。`laravel-lang/lang` などの `laravel-lang/*` 系パッケージ（`composer require laravel-lang/...`）は導入しないでください。同系パッケージは 2026年5月のサプライチェーン攻撃でマルウェア配布に悪用された経緯があります。_
+
+## 使用技術(実行環境)
+
+- **PHP** : 8.1.34
+- **Laravel** : 8.83.8
+- **MySQL** : 8.0.26
+- **nginx** : 1.21.1
+
+## ER図
+
+![ER図](flea-market-app.drawio.png)
+
+## 開発環境
+
+### アクセスURL
+
+- **商品一覧画面（トップ）** : http://localhost/
+- **会員登録画面** : http://localhost/register
+- **ログイン画面** : http://localhost/login
+- **phpMyAdmin** : http://localhost:8080/
+- **MailHog（受信用ダッシュボード）** : http://localhost:8025/
+
+### テスト用ログインアカウント
+
+マイグレーションおよびシーダー（`php artisan db:seed`）の実行後、以下のテスト用アカウントを使用してすぐに各機能の挙動を確認いただけます。
+（効率的な動作確認のため、会員登録の手間を省く目的であらかじめ用意しています）
+
+#### 一般ユーザー（購入テスト用）
+
+会員登録なしでログインし、出品されている商品の閲覧・購入の挙動を確認できます。
+※プロフィール画像は、要件である「ローカルからのアップロードおよびストレージ（storageディレクトリ）への保存機能」を実際にテストしていただくため、初期状態では未設定（空）としています。
+
+- **メールアドレス**: `test@example.com`
+- **パスワード**: `password`
+
+#### 出品者ユーザー
+
+要件に基づき生成された「商品情報」「商品カテゴリー情報」を持つ、10件のダミー商品を出品しているアカウントです。
+
+- **メールアドレス**: `seller@example.com`
+- **パスワード**: `password`
+
+### メール認証機能（FN012・FN013）の確認手順
+
+上記のテスト用アカウントはすべて認証済み状態となっています。
+新規登録時のメール認証や、認証メール再送機能の挙動を確認する際は、以下の手順で行ってください。
+
+1. トップページの「会員登録」から、任意のメールアドレスで新規アカウントを作成する。
+2. 登録完了後、自動的にメール認証待ち画面に遷移する。
+3. ブラウザで [MailHog](http://localhost:8025/) を開く。
+4. 送信された「Verify Email Address（メールアドレスを確認する）」というメールを開き、本文内の認証リンクをクリックする。
+5. 認証が完了し、プロフィール設定画面に遷移することを確認する。
+
+_※ `.env` ファイルのメール設定（MAIL_HOST=mailhog, MAIL_PORT=1025 等）は、docker-composeの起動時点で自動的に適用されるようになっています。_
+
+```
+
+```
