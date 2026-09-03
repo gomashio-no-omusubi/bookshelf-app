@@ -1,3 +1,7 @@
+@php
+    $books = collect([]); // 空っぽのダミーデータを作って変数を用意する
+@endphp
+
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
