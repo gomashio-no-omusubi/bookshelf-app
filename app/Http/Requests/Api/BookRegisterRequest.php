@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -18,7 +19,7 @@ class BookRegisterRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -41,7 +42,7 @@ class BookRegisterRequest extends FormRequest
             'author.required' => '著者名は必須項目です',
             'author.max' => '著者名は255文字以内で入力してください',
             'isbn.required' => 'ISBNは必須項目です',
-            'isbn.digits' => 'ISBNは13桁の数字で入力してください', //placeholder="9784000000000"の指示通り
+            'isbn.digits' => 'ISBNは13桁の数字で入力してください', // placeholder="9784000000000"の指示通り
             'isbn.unique' => 'このISBNは既に他の書籍に登録されています',
             'published_at.required' => '出版日は必須項目です',
             'published_at.date' => '有効な日付を入力してください',
