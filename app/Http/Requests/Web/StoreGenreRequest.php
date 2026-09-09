@@ -4,8 +4,9 @@ namespace App\Http\Requests\Web;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
-class ReviewUpdateRequest extends FormRequest
+class StoreGenreRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,19 +24,17 @@ class ReviewUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'comment' => ['required', 'string', 'max:1000'],
-            'rating' => ['required', 'integer', 'between:1,5'],
+            'name' => ['required', 'string', 'max:255', Rule::unique('genres')],
         ];
     }
 
     public function messages()
     {
         return [
-            'comment.required' => 'レビュー内容を入力してください',
-            'comment.max' => 'レビュー内容は1000文字以内で入力してください',
-            'rating.required' => '評価を選択してください。',
-            'rating.integer' => '評価は数値で指定してください',
-            'rating.between' => '評価は1から5の間で選択してください',
+            'name.required' => 'ジャンル名は必須です。',
+            'name.string' => 'ジャンル名は文字列で入力してください。',
+            'name.max' => 'ジャンル名は255文字以内で入力してください。',
+            'name.unique' => 'そのジャンル名は既に使用されています。',
         ];
     }
 }

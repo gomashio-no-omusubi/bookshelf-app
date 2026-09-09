@@ -34,9 +34,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/genres/{genre}', [GenreController::class, 'show'])->name('genres.show');
     Route::get('/genres/{genre}/edit', [GenreController::class, 'edit'])->name('genres.edit');
 
-    // レビュー編集
+    // レビュー管理
+    Route::post('/books/{book}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
+    Route::post(' /reviews/{review}/like', [ReviewController::class, 'like'])->name('reviews.like');
     Route::get('/reviews/{review}/edit', [ReviewController::class, 'edit'])->name('reviews.edit');
 
-    // お気に入り一覧
+
+    // お気に入り管理
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
+    Route::post('/books/{book}/favorite', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
 });

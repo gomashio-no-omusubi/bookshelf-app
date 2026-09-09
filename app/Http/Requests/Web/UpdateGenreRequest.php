@@ -6,7 +6,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class GenreUpdateRequest extends FormRequest
+class UpdateGenreRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -26,17 +26,17 @@ class GenreUpdateRequest extends FormRequest
         $genre = $this->route('genre');
 
         return [
-            'name' => ['required', 'string', 'max:50', Rule::unique('genres')->ignore($genre)],
+            'name' => ['required', 'string', 'max:255', Rule::unique('genres')->ignore($genre)],
         ];
     }
 
     public function messages()
     {
         return [
-            'name.required' => 'ジャンル名を入力してください',
-            'name.string' => 'ジャンル名は文字列で入力してください',
-            'name.max' => 'ジャンル名は50文字以内で入力してください',
-            'name.unique' => 'このジャンル名は既に他のジャンルに登録されています',
+            'name.required' => 'ジャンル名は必須です。',
+            'name.string' => 'ジャンル名は文字列で入力してください。',
+            'name.max' => 'ジャンル名は255文字以内で入力してください。',
+            'name.unique' => 'そのジャンル名は既に使用されています。',
         ];
     }
 }
