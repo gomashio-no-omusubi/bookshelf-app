@@ -21,8 +21,6 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->bind(FortifyLoginRequest::class, LoginRequest::class);
-
         $this->app->instance(RegisterResponse::class, new class implements RegisterResponse
         {
             public function toResponse($request)
@@ -45,6 +43,8 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->app->bind(FortifyLoginRequest::class, LoginRequest::class);
+
         Fortify::createUsersUsing(CreateNewUser::class);
 
         Fortify::loginView(function () {
