@@ -38,4 +38,9 @@ class Book extends Model
     {
         return $this->belongsToMany(User::class, 'favorites');
     }
+
+    public function isReviewedBy($userId)
+    {
+        return $this->reviews()->where('user_id', $userId)->exists();
+    }
 }

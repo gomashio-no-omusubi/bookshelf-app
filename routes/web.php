@@ -26,7 +26,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/books/create', [BookController::class, 'create'])->name('books.create');
     Route::post('/', [BookController::class, 'store'])->name('books.store');
     Route::get('/books/{book}/edit', [BookController::class, 'edit'])->name('books.edit');
-    Route::put('/books/{book}/edit', [BookController::class, 'update'])->name('books.update');
+    Route::put('/books/{book}', [BookController::class, 'update'])->name('books.update');
     Route::delete('/books/{book}', [BookController::class, 'destroy'])->name('books.destroy');
 
     // ジャンル管理（一覧・登録・詳細・編集）
@@ -35,10 +35,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/genres/{genre}', [GenreController::class, 'show'])->name('genres.show');
     Route::get('/genres/{genre}/edit', [GenreController::class, 'edit'])->name('genres.edit');
 
-    // レビュー管理
+    // レビュー管理（投稿・編集・更新・削除・いいね）
     Route::post('/books/{book}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
-    Route::post('/reviews/{review}/like', [ReviewController::class, 'like'])->name('reviews.like');
     Route::get('/reviews/{review}/edit', [ReviewController::class, 'edit'])->name('reviews.edit');
+    Route::put('/reviews/{review}', [ReviewController::class, 'update'])->name('reviews.update');
+    Route::delete('/reviews/{review}/', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+    Route::post('/reviews/{review}/like', [ReviewController::class, 'toggle'])->name('reviews.like');
 
     // お気に入り管理
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
