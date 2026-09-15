@@ -18,6 +18,8 @@ class ReviewController extends Controller
 
     public function store(StoreReviewRequest $request, Book $book)
     {
+        // 要件シートの指示（範囲検証）に基づき、FormRequestは入力値チェックに専念。
+        // DBが絡む重複投稿の検知は、ビジネスロジックとしてコントローラーとモデルで制御。
         if ($book->isReviewedBy(auth()->id())) {
             return back()->withErrors([
                 'comment' => 'この書籍へのレビューはすでに投稿済みです。',
@@ -29,7 +31,7 @@ class ReviewController extends Controller
             'user_id' => auth()->id(),
         ]);
 
-        return back();
+        return back()->with('success', 'レビューを投稿しました。');
     }
 
     public function edit(Review $review)
@@ -51,7 +53,7 @@ class ReviewController extends Controller
             'user_id' => auth()->id(),
         ]);
 
-        return redirect()->route('books.show', $review->book_id);
+        return redirect()->route('books.show', $review->book_id)->with('success', 'レビューを更新しました。');
     }
 
     public function destroy(Review $review)
@@ -60,6 +62,6 @@ class ReviewController extends Controller
 
         $review->delete();
 
-        return back();
+        return back()->with('success', 'レビューを削除しました。');
     }
 }
