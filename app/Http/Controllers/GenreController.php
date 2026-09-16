@@ -46,8 +46,6 @@ class GenreController extends Controller
 
     public function update(UpdateGenreRequest $request, Genre $genre)
     {
-        $oldName = $genre->name;
-
         $genre->update(['name' => $request->input('name')]);
 
         return redirect()->route('genres.index', $genre)->with('success', 'ジャンルを更新しました。');
