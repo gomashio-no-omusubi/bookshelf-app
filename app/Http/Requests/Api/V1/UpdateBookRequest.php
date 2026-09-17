@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Requests\Api;
+namespace App\Http\Requests\Api\V1;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class StoreBookRequest extends FormRequest
+class UpdateBookRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,16 +23,18 @@ class StoreBookRequest extends FormRequest
      */
     public function rules(): array
     {
+        $book = $this->route('book');
+
         return [
-            'title' => ['required', 'string', 'max255'],
+            'title' => ['required', 'string', 'max:255'],
             'author' => ['required', 'string', 'max:255'],
-            'isbn' => ['required', 'string', 'size:13', Rule::unique('books')],
+            'isbn' => ['required', 'string', 'size:13', Rule::unique('books')->ignore($book)],
             'published_date' => ['required', 'date'],
             'description' => ['nullable', 'string'],
             'image_url' => ['nullable', 'url', 'max:255'],
             'genres' => ['required', 'array'],
             'genres.*' => [Rule::exists('genres', 'id')],
-            'user_id' => ['required', Rule::exists('users')],
+            'user_id' => ['required', Rule::exists('users', 'id')],
         ];
     }
 
@@ -65,7 +67,7 @@ class StoreBookRequest extends FormRequest
             'genres.*.exists' => '選択されたジャンルは存在しません。',
 
             'user_id.required' => '登録者IDは必須です。',
-            'user_id.exists' => '選択された登録者IDは存在しません',
+            'user_id.exists' => '指定された登録者は存在しません。',
         ];
     }
 }
