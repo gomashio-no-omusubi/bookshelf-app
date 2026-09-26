@@ -40,8 +40,7 @@ class BookController extends Controller
                 'author' => $request->input('author'),
                 'published_date' => $request->input('published_date'),
                 'description' => $request->input('description'),
-                'img_url' => $request->input('img_url'),
-                'condition_id' => $request->input('condition_id'),
+                'image_url' => $request->input('image_url'),
                 'user_id' => auth()->id(),
             ]
         );
@@ -67,10 +66,10 @@ class BookController extends Controller
         $book->update([
             'title' => $request->input('title'),
             'author' => $request->input('author'),
+            'isbn' => $request->input('isbn'),
             'published_date' => $request->input('published_date'),
             'description' => $request->input('description'),
-            'img_url' => $request->input('img_url'),
-            'condition_id' => $request->input('condition_id'),
+            'image_url' => $request->input('image_url'),
             'user_id' => auth()->id(),
         ]);
 
