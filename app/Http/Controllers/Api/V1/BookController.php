@@ -38,7 +38,10 @@ class BookController extends Controller
             });
         }
 
-        $perPage = $request->input('per_page', 10);
+        $perPage = (int) $request->input('per_page', 20);
+        if ($perPage > 100) {
+            $perPage = 100;
+        }
         $books = $query->latest()->paginate($perPage);
 
         return BookResource::collection($books);
@@ -97,8 +100,6 @@ class BookController extends Controller
 
         $book->delete();
 
-        return response()->json([
-            'message' => '書籍を削除しました。',
-        ], 200);
+        return response()->json(null, 204);
     }
 }

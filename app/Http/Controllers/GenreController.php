@@ -48,7 +48,7 @@ class GenreController extends Controller
     {
         $genre->update(['name' => $request->input('name')]);
 
-        return redirect()->route('genres.index', $genre)->with('success', 'ジャンルを更新しました。');
+        return redirect()->route('genres.index')->with('success', 'ジャンルを更新しました。');
     }
 
     public function destroy(Genre $genre)

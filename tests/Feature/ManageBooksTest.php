@@ -51,11 +51,17 @@ class ManageBooksTest extends TestCase
             'genres' => $genres->pluck('id')->toArray(),
         ];
 
-        $this->actingAs($user)->post(route('books.store'), $bookData);
+        $response = $this->actingAs($user)->post(route('books.store'), $bookData);
+
+        $latestBook = Book::latest()->first();
+        $response->assertRedirect(route('books.show', $latestBook));
 
         $this->assertDatabaseHas('books', ['title' => 'テスト書籍タイトル']);
         foreach ($genres as $genre) {
-            $this->assertDatabaseHas('book_genres', ['genre_id' => $genre->id]);
+            $this->assertDatabaseHas('book_genres', [
+                'book_id' => $latestBook->id,
+                'genre_id' => $genre->id,
+            ]);
         }
     }
 
@@ -66,6 +72,7 @@ class ManageBooksTest extends TestCase
 
         $response = $this->actingAs($user)->post(route('books.store'), []);
 
+        $response->assertStatus(302);
         $response->assertSessionHasErrors(['title']);
     }
 
@@ -88,7 +95,10 @@ class ManageBooksTest extends TestCase
             'genres' => $newGenres->pluck('id')->toArray(),
         ];
 
-        $this->actingAs($user)->put(route('books.update', $book), $updatedData);
+        $response = $this->actingAs($user)->put(route('books.update', $book), $updatedData);
+
+        $response->assertStatus(302);
+        $response->assertRedirect(route('books.show', $book));
 
         foreach ($newGenres as $genre) {
             $this->assertDatabaseHas(
@@ -132,6 +142,7 @@ class ManageBooksTest extends TestCase
 
         $response = $this->actingAs($user)->delete(route('books.destroy', $book));
 
+        $response->assertStatus(302);
         $response->assertRedirect(route('books.index'));
         $this->assertDatabaseMissing('books', ['id' => $book->id]);
     }
