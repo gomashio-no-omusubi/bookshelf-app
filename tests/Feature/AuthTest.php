@@ -111,11 +111,13 @@ class AuthTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $responseLogin = $this->actingAs($user)->get(route('login'));
+        $this->actingAs($user);
+        $responseLogin = $this->get(route('login'));
         $responseLogin->assertStatus(302);
         $responseLogin->assertRedirect(route('books.index'));
 
-        $responseRegister = $this->actingAs($user)->get(route('register'));
+        $this->actingAs($user);
+        $responseRegister = $this->get(route('register'));
         $responseRegister->assertStatus(302);
         $responseRegister->assertRedirect(route('books.index'));
     }
@@ -124,12 +126,13 @@ class AuthTest extends TestCase
     // ■ ログアウト
     // ==========================================
 
-    // ログイン中のユーザーがログアウトボタンを押すと、セッションが破棄されログイン画面にリダイレクトされる
+    // セッションが破棄されログイン画面にリダイレクトされる
     public function test_authenticated_user_can_logout()
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->post(route('logout'));
+        $this->actingAs($user);
+        $response = $this->post(route('logout'));
 
         $response->assertStatus(302);
         $response->assertRedirect(route('login'));

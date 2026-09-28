@@ -31,7 +31,7 @@ class Book extends Model
 
     public function genres()
     {
-        return $this->belongsToMany(Genre::class, 'book_genres');
+        return $this->belongsToMany(Genre::class, 'book_genre');
     }
 
     public function favoritedByUsers()

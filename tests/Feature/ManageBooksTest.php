@@ -58,7 +58,7 @@ class ManageBooksTest extends TestCase
 
         $this->assertDatabaseHas('books', ['title' => 'テスト書籍タイトル']);
         foreach ($genres as $genre) {
-            $this->assertDatabaseHas('book_genres', [
+            $this->assertDatabaseHas('book_genre', [
                 'book_id' => $latestBook->id,
                 'genre_id' => $genre->id,
             ]);
@@ -102,7 +102,7 @@ class ManageBooksTest extends TestCase
 
         foreach ($newGenres as $genre) {
             $this->assertDatabaseHas(
-                'book_genres',
+                'book_genre',
                 [
                     'book_id' => $book->id,
                     'genre_id' => $genre->id,

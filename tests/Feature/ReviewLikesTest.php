@@ -44,9 +44,12 @@ class ReviewLikesTest extends TestCase
             'book_id' => $book->id,
             'user_id' => $user->id,
         ]);
-        $user->likedReviews()->attach($review->id);
 
-        $response = $this->actingAs($user)->post(route('reviews.like', $review));
+        $likedReviewsRelation = $user->likedReviews();
+        $likedReviewsRelation->attach($review->id);
+
+        $this->actingAs($user);
+        $response = $this->post(route('reviews.like', $review));
 
         $response->assertStatus(302);
         $this->assertDatabaseMissing('review_likes', [
