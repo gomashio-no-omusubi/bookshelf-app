@@ -258,12 +258,50 @@ sail artisan test
 
 _**※ 日本語化（バリデーション・認証メッセージ）について（基本）**： `config/app.php` の `locale` を `ja` にし、`lang/ja/` にメッセージファイルを手動配置して行います。`laravel-lang/lang` などの `laravel-lang/*` 系パッケージ（`composer require laravel-lang/...`）は導入しないでください。同系パッケージは 2026年5月のサプライチェーン攻撃でマルウェア配布に悪用された経緯があります。_
 
-## 使用技術(実行環境)
+### 💡 応用フェーズ認証基盤（Laravel Sanctum）のセットアップ
 
-- **PHP** : 8.1.34
-- **Laravel** : 8.83.8
-- **MySQL** : 8.0.26
-- **nginx** : 1.21.1
+新しくAPIトークン認証を導入したため、ローカル環境を立ち上げる際は、通常のマイグレーションに加えて以下のコマンドを順に実行してください。
+
+1. Sanctumパッケージのインストール（依存関係の解決）
+
+```bash
+sail composer require laravel/sanctum
+```
+
+2. Sanctum初期設定ファイルの生成（マイグレーションファイルの準備）
+
+```bash
+sail artisan vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"
+```
+
+※後続の応用テーブルと一括で再構築するため、マイグレーションはここではまだ実行しません。
+
+## 使用技術（実行環境）
+
+- **PHP**: 8.2.x (Laravel Sail 標準環境)
+- **Laravel**: 10.x (明示的指定による構築)
+- **MySQL**: 8.0.x (Laravel Sail 明示指定によるコンテナ構築)
+- **nginx**: 1.25.x / Sail内蔵環境 (リクエスト処理・ポートバインディング制御)
+- **認証基盤 (Web)**: Laravel Breeze / 標準セッション認証
+- **認証基盤 (API)**: Laravel Sanctum (APIトークン認証)
+
+### 応用フェーズ認証基盤（Laravel Sanctum）のセットアップ
+
+新しくAPIトークン認証を導入したため、ローカル環境を立ち上げる際は、通常のマイグレーションに加えて以下のコマンドを順に実行してください。
+
+1. Sanctumパッケージのインストール（依存関係の解決）
+
+```bash
+sail composer require laravel/sanctum
+```
+
+2. Sanctum初期設定ファイルの生成（マイグレーションファイルの準備）
+
+```bash
+sail artisan vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"
+```
+
+※後続の応用テーブルと一括で再構築するため、マイグレーションはここではまだ実行しません。
 
 ## ER図
 
@@ -278,26 +316,6 @@ _**※ 日本語化（バリデーション・認証メッセージ）につい�
 - **ログイン画面** : http://localhost/login
 - **phpMyAdmin** : http://localhost:8080/
 - **MailHog（受信用ダッシュボード）** : http://localhost:8025/
-
-### テスト用ログインアカウント
-
-マイグレーションおよびシーダー（`php artisan db:seed`）の実行後、以下のテスト用アカウントを使用してすぐに各機能の挙動を確認いただけます。
-（効率的な動作確認のため、会員登録の手間を省く目的であらかじめ用意しています）
-
-#### 一般ユーザー（購入テスト用）
-
-会員登録なしでログインし、出品されている商品の閲覧・購入の挙動を確認できます。
-※プロフィール画像は、要件である「ローカルからのアップロードおよびストレージ（storageディレクトリ）への保存機能」を実際にテストしていただくため、初期状態では未設定（空）としています。
-
-- **メールアドレス**: `test@example.com`
-- **パスワード**: `password`
-
-#### 出品者ユーザー
-
-要件に基づき生成された「商品情報」「商品カテゴリー情報」を持つ、10件のダミー商品を出品しているアカウントです。
-
-- **メールアドレス**: `seller@example.com`
-- **パスワード**: `password`
 
 ### メール認証機能（FN012・FN013）の確認手順
 
