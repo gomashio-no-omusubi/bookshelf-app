@@ -11,10 +11,18 @@ use App\Models\Book;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
+/**
+ * クラス BookController
+ *
+ * API（V1）向けの書籍管理に関するデータ制御およびレスポンス処理を行うコントローラーです。
+ */
 class BookController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * 書籍情報の一覧を条件に応じて取得します。
+     *
+     * @param  IndexBookRequest  $request  バリデーション済みのリクエストオブジェクト
+     * @return AnonymousResourceCollection 書籍リソースのコレクションレスポンス
      */
     public function index(IndexBookRequest $request): AnonymousResourceCollection
     {
@@ -48,7 +56,10 @@ class BookController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * 新しい書籍情報をデータベースに登録します。
+     *
+     * @param  StoreBookRequest  $request  バリデーション済みのリクエストオブジェクト
+     * @return JsonResponse HTTPステータスコード201を含むJSONレスポンス
      */
     public function store(StoreBookRequest $request): JsonResponse
     {
@@ -65,7 +76,10 @@ class BookController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * 特定の書籍情報を取得します。
+     *
+     * @param  Book  $book  対象の書籍オブジェクト
+     * @return BookResource 書籍リソースのインスタンス
      */
     public function show(Book $book): BookResource
     {
@@ -77,7 +91,11 @@ class BookController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * 特定の書籍情報を更新します。
+     *
+     * @param  UpdateBookRequest  $request  バリデーション済みのリクエストオブジェクト
+     * @param  Book  $book  対象の書籍オブジェクト
+     * @return BookResource 書籍リソースのインスタンス
      */
     public function update(UpdateBookRequest $request, Book $book): BookResource
     {
@@ -92,7 +110,10 @@ class BookController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * 特定の書籍情報をデータベースから削除します。
+     *
+     * @param  Book  $book  対象の書籍オブジェクト
+     * @return JsonResponse HTTPステータスコード204を含む空のJSONレスポンス
      */
     public function destroy(Book $book): JsonResponse
     {

@@ -6,10 +6,17 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * クラス IndexBookRequest
+ *
+ * API（V1）における書籍一覧取得時のバリデーションおよび認可を制御するリクエストクラスです。
+ */
 class IndexBookRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * ユーザーがこのリクエストを行う権限があるか判定します。
+     *
+     * @return bool 権限がある場合はtrue、それ以外はfalse
      */
     public function authorize(): bool
     {
@@ -17,9 +24,9 @@ class IndexBookRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * リクエストに適用されるバリデーションルールを取得します。
      *
-     * @return array<string, ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string> バリデーションルールの配列
      */
     public function rules(): array
     {
@@ -31,7 +38,12 @@ class IndexBookRequest extends FormRequest
         ];
     }
 
-    public function messages()
+    /**
+     * 定義されたバリデーションルールのエラーメッセージを取得します。
+     *
+     * @return array<string, string> エラーメッセージの配列
+     */
+    public function messages(): array
     {
         return [
             'keyword.string' => 'キーワードは文字列で入力してください。',
@@ -40,11 +52,11 @@ class IndexBookRequest extends FormRequest
             'genre_id.integer' => 'ジャンルIDは整数で指定してください。',
             'genre_id.exists' => '選択されたジャンルIDは存在しません。',
 
-            'page.integer' => 'ページ番号は整数で指定してください',
-            'page.min' => 'ページ番号は1以上で指定してください',
-            'per_page.integer' => 'ページあたりの表示件数は整数で指定してください',
-            'per_page.min' => 'ページあたりの表示件数は1以上で指定してください',
-            'per_page.max' => 'ページあたりの表示件数は100以内で指定してください',
+            'page.integer' => 'ページ番号は整数で指定してください。',
+            'page.min' => 'ページ番号は1以上で指定してください。',
+            'per_page.integer' => 'ページあたりの表示件数は整数で指定してください。',
+            'per_page.min' => 'ページあたりの表示件数は1以上で指定してください。',
+            'per_page.max' => 'ページあたりの表示件数は100以内で指定してください。',
         ];
     }
 }
