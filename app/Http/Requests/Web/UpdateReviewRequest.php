@@ -5,10 +5,17 @@ namespace App\Http\Requests\Web;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * クラス UpdateReviewRequest
+ *
+ * レビューの更新時におけるバリデーションおよび認可を制御するリクエストクラスです。
+ */
 class UpdateReviewRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * ユーザーがこのリクエストを行う権限があるか判定します。
+     *
+     * @return bool 権限がある場合はtrue、それ以外はfalse
      */
     public function authorize(): bool
     {
@@ -16,19 +23,24 @@ class UpdateReviewRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * リクエストに適用されるバリデーションルールを取得します。
      *
-     * @return array<string, ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string> バリデーションルールの配列
      */
     public function rules(): array
     {
         return [
-            'rating' => ['required', 'integer', 'min:1', 'max:5'], // ★ 評価値（例: 星1〜5個の範囲チェック）
+            'rating' => ['required', 'integer', 'min:1', 'max:5'],
             'comment' => ['required', 'string', 'max:1000'],
         ];
     }
 
-    public function messages()
+    /**
+     * 定義されたバリデーションルールのエラーメッセージを取得します。
+     *
+     * @return array<string, string> エラーメッセージの配列
+     */
+    public function messages(): array
     {
         return [
             'rating.required' => '評価は必須です。',
