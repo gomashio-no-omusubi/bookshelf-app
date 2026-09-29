@@ -17,6 +17,11 @@ class Book extends Model
 {
     use HasFactory;
 
+    /**
+     * 複数代入可能な属性
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'title',
         'author',
