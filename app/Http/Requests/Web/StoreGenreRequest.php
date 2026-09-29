@@ -6,10 +6,17 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * クラス StoreGenreRequest
+ *
+ * ジャンルの新規登録時におけるバリデーションおよび認可を制御するリクエストクラスです。
+ */
 class StoreGenreRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * ユーザーがこのリクエストを行う権限があるか判定します。
+     *
+     * @return bool 権限がある場合はtrue、それ以外はfalse
      */
     public function authorize(): bool
     {
@@ -17,9 +24,9 @@ class StoreGenreRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * リクエストに適用されるバリデーションルールを取得します。
      *
-     * @return array<string, ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string> バリデーションルールの配列
      */
     public function rules(): array
     {
@@ -28,7 +35,12 @@ class StoreGenreRequest extends FormRequest
         ];
     }
 
-    public function messages()
+    /**
+     * 定義されたバリデーションルールのエラーメッセージを取得します。
+     *
+     * @return array<string, string> エラーメッセージの配列
+     */
+    public function messages(): array
     {
         return [
             'name.required' => 'ジャンル名は必須です。',
