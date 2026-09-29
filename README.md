@@ -303,6 +303,29 @@ sail artisan vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"
 
 ※後続の応用テーブルと一括で再構築するため、マイグレーションはここではまだ実行しません。
 
+### ■ 外部API連携（Google Books API）の設計・設定
+
+タスク13の「書籍機能の応用拡張」にて導入するISBN検索機能のため、以下の外部API連携の基盤設計をあらかじめ定義しています。
+
+1. 環境変数の定義（`.env`）
+   ローカル環境および本番環境の環境変数として以下を定義します（実際のAPIキー値は各環境に応じて設定）。
+
+```env
+GOOGLE_BOOKS_API_KEY=dummy_key_value
+```
+
+2. 構成設定の集中管理（`config/services.php`）
+   セキュリティと設定キャッシュ（`config:cache`）の動作安定性を担保するため、プログラム内から `env()` 関数を直接呼び出すことを禁止し、必ず以下の設定配列を経由して型安全に値を管理します。
+
+```php
+'google' => [
+    'books_api_key' => env('GOOGLE_BOOKS_API_KEY'),
+],
+```
+
+3. 通信仕様
+   外部APIとのセキュアな通信には、Laravel標準のHTTPクライアントファサード（`Illuminate\Support\Facades\Http`）を一貫して使用し、エラーハンドリングとソート・フィルタ制御をカプセル化します。
+
 ## ER図
 
 ![ER図](flea-market-app.drawio.png)
