@@ -6,6 +6,7 @@ use App\Models\Book;
 use App\Models\Genre;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class BookApiTest extends TestCase
@@ -227,7 +228,7 @@ class BookApiTest extends TestCase
         ]);
         $genre = Genre::factory()->create();
 
-        $this->actingAs($user);
+        Sanctum::actingAs($user);
 
         $params = [
             'title' => 'OUT（新装版）',
@@ -257,9 +258,11 @@ class BookApiTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $book = Book::factory()->create();
+        $book = Book::factory()->create([
+            'user_id' => $user->id,
+        ]);
 
-        $this->actingAs($user);
+        Sanctum::actingAs($user);
 
         $params = ['title' => ''];
 
@@ -278,7 +281,7 @@ class BookApiTest extends TestCase
     public function test_api_update_returns_404_if_book_not_found()
     {
         $user = User::factory()->create();
-        $this->actingAs($user);
+        Sanctum::actingAs($user);
 
         $url = '/api/v1/books/99999';
         $params = ['title' => '変更'];
@@ -301,9 +304,11 @@ class BookApiTest extends TestCase
     public function test_api_destroy_deletes_book_and_returns_204()
     {
         $user = User::factory()->create();
-        $this->actingAs($user);
+        Sanctum::actingAs($user);
 
-        $book = Book::factory()->create();
+        $book = Book::factory()->create([
+            'user_id' => $user->id,
+        ]);
         $genre = Genre::factory()->create();
 
         $bookGenresRelation = $book->genres();
@@ -330,7 +335,7 @@ class BookApiTest extends TestCase
     public function test_api_destroy_returns_404_if_book_not_found()
     {
         $user = User::factory()->create();
-        $this->actingAs($user);
+        Sanctum::actingAs($user);
 
         $url = '/api/v1/books/99999';
         $response = $this->deleteJson($url);
