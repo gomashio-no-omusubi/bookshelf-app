@@ -99,6 +99,8 @@ class BookController extends Controller
      */
     public function update(UpdateBookRequest $request, Book $book): BookResource
     {
+        $this->authorize('update', $book);
+
         $validated = $request->validated();
         $book->update(collect($validated)->except('genres')->toArray());
 
@@ -117,6 +119,8 @@ class BookController extends Controller
      */
     public function destroy(Book $book): JsonResponse
     {
+        $this->authorize('delete', $book);
+
         $book->genres()->detach();
 
         $book->delete();
