@@ -10,11 +10,15 @@ use Illuminate\Database\Seeder;
 class BookSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * アプリケーションの初期書籍データをデータベースに投入します。
+     * 各書籍には全ユーザーの中からランダムな所有者が割り当てられます。
+     *
+     * @param  void  引数はありません
+     * @return void 戻り値はありません
      */
     public function run(): void
     {
-        $user = User::first();
+        $users = User::all();
 
         $booksData = [
             [
@@ -107,14 +111,13 @@ class BookSeeder extends Seeder
             ],
         ];
 
-        $number = 1;
-
-        foreach ($booksData as $data) {
+        collect($booksData)->each(function (array $data, int $index) use ($users) {
+            $number = $index + 1;
 
             $book = Book::firstOrCreate(
                 ['isbn' => $data['isbn']],
                 [
-                    'user_id' => $user->id,
+                    'user_id' => $users->random()->id,
                     'title' => $data['title'],
                     'author' => $data['author'],
                     'published_date' => $data['published_date'],
@@ -126,8 +129,6 @@ class BookSeeder extends Seeder
             $genreIds = Genre::whereIn('name', $data['genres'])->pluck('id')->toArray();
 
             $book->genres()->sync($genreIds);
-
-            $number++;
-        }
+        });
     }
 }
