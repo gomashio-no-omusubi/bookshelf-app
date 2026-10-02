@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -30,6 +31,15 @@ class Book extends Model
         'description',
         'image_url',
         'user_id',
+    ];
+
+    /**
+     * 属性のキャスト（文字列を自動的にCarbonオブジェクトに変換します）
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'published_date' => 'date',
     ];
 
     public function reviews(): HasMany
@@ -61,5 +71,37 @@ class Book extends Model
     public function isReviewedBy(int $userId): bool
     {
         return $this->reviews()->where('user_id', $userId)->exists();
+    }
+
+    /**
+     * 検索・フィルタ・ソートを統合して適用するローカルスコープ
+     *
+     * @param  Builder  $query  クエリビルダー
+     * @param  array<string, mixed>  $params  リクエストから渡された検索パラメータ
+     * @return Builder クエリビルダー
+     */
+    public function scopeSearchAndSort(Builder $query, array $params): Builder
+    {
+        return $query->withAvg('reviews', 'rating')
+            ->where(function (Builder $q) use ($params) {
+                if (! empty($params['keyword'])) {
+                    $q->where('title', 'like', "%{$params['keyword']}%")
+                        ->orWhere('author', 'like', "%{$params['keyword']}%");
+                }
+            })
+            ->when(! empty($params['genre']), function (Builder $q) use ($params) {
+                $q->whereHas('genres', function (Builder $g) use ($params) {
+                    $g->where('book_genre.genre_id', $params['genre']);
+                });
+            })
+            ->when($params['sort'] ?? 'latest', function (Builder $q, string $sort) {
+                match ($sort) {
+                    'oldest' => $q->orderBy('created_at', 'asc'),
+                    'title' => $q->orderBy('title', 'asc'),
+                    'rating' => $q->orderByRaw('reviews_avg_rating IS NULL ASC')
+                        ->orderBy('reviews_avg_rating', 'desc'),
+                    'newest', 'latest' => $q->orderBy('created_at', 'desc'),
+                };
+            });
     }
 }
