@@ -2,23 +2,35 @@
 
 namespace App\Console;
 
+use App\Console\Commands\DailyReadingPlanProcessCommand;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
 class Kernel extends ConsoleKernel
 {
     /**
-     * Define the application's command schedule.
+     * アプリケーションのカスタムArtisanコマンドの登録
+     *
+     * @var array
      */
-    protected function schedule(Schedule $schedule): void
+    protected $commands = [
+        DailyReadingPlanProcessCommand::class,
+    ];
+
+    /**
+     * アプリケーションのコマンドスケジュールの定義
+     *
+     * @param  Schedule  $schedule
+     */
+    protected function schedule($schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        $schedule->command('reading-plan:daily-process')->daily();
     }
 
     /**
-     * Register the commands for the application.
+     * アプリケーションのクロージャベースのコマンド登録
      */
-    protected function commands(): void
+    protected function commands()
     {
         $this->load(__DIR__.'/Commands');
 
