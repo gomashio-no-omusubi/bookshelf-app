@@ -64,7 +64,13 @@ class BookController extends Controller
     public function store(StoreBookRequest $request): JsonResponse
     {
         $validated = $request->validated();
-        $book = Book::create(collect($validated)->except('genres')->toArray());
+
+        $bookData = collect($validated)
+            ->except('genres')
+            ->merge(['user_id' => $request->user()->id])
+            ->toArray();
+
+        $book = Book::create($bookData);
 
         $book->genres()->sync($request->input('genres'));
 

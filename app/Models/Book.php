@@ -39,7 +39,7 @@ class Book extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'published_date' => 'date',
+        'published_date' => 'date:Y-m-d',
     ];
 
     public function reviews(): HasMany
