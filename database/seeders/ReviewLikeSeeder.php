@@ -6,11 +6,11 @@ use App\Models\Review;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
+/**
+ * いいねのテストデータを動的に投入するシーダークラスです。
+ */
 class ReviewLikeSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $users = User::all();

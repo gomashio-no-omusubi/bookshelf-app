@@ -12,9 +12,6 @@ use Illuminate\Support\Carbon;
  */
 class ReadingPlanSeeder extends Seeder
 {
-    /**
-     * 読書計画のテストデータを生成します。
-     */
     public function run(): void
     {
         $books = Book::limit(6)->get();

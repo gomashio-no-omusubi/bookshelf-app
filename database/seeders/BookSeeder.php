@@ -7,14 +7,13 @@ use App\Models\Genre;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
+/**
+ * 初期書籍のテストデータを動的に投入するシーダークラスです。
+ */
 class BookSeeder extends Seeder
 {
     /**
-     * アプリケーションの初期書籍データをデータベースに投入します。
      * 各書籍には全ユーザーの中からランダムな所有者が割り当てられます。
-     *
-     * @param  void  引数はありません
-     * @return void 戻り値はありません
      */
     public function run(): void
     {

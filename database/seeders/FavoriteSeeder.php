@@ -6,11 +6,11 @@ use App\Models\Book;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
+/**
+ *お気に入りのテストデータを動的に投入するシーダークラスです。
+ */
 class FavoriteSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $users = User::all();

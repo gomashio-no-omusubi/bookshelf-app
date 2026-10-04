@@ -7,15 +7,14 @@ use App\Models\Review;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
+/**
+ * 初期レビューデータのテストデータを動的に投入するシーダークラスです。
+ */
 class ReviewSeeder extends Seeder
 {
     /**
-     * アプリケーションの初期レビューデータをデータベースに投入します。
      * 各書籍に対してランダムに選ばれた複数ユーザーから2〜4件のレビューを生成し、
      * 評価値（1〜5）に応じた日本語コメントテンプレートを割り当てます。
-     *
-     * @param  void  引数はありません
-     * @return void 戻り値はありません
      */
     public function run(): void
     {
