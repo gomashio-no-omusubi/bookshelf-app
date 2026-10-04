@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Web\IndexBookRequest;
 use App\Http\Requests\Web\StoreBookRequest;
 use App\Http\Requests\Web\UpdateBookRequest;
 use App\Models\Book;
 use App\Models\Genre;
+use App\Services\GoogleBooksService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 
 /**
@@ -17,15 +20,44 @@ use Illuminate\Http\RedirectResponse;
 class BookController extends Controller
 {
     /**
-     * 書籍の一覧画面を表示します。
+     * 書籍の一覧画面を表示します。（検索・フィルタ・ソート・ページネーション対応）
      *
+     * @param  IndexBookRequest  $request  バリデーション済みのリクエストオブジェクト
      * @return View 一覧画面のビューインスタンス
      */
-    public function index(): View
+    public function index(IndexBookRequest $request): View
     {
-        $books = Book::withAvg('reviews', 'rating')->latest()->paginate(10);
+        $books = Book::searchAndSort($request->all())
+            ->paginate(10)
+            ->appends($request->query());
 
-        return view('books.index', compact('books'));
+        $books->setCollection(
+            $books->getCollection()->map(function (Book $book): Book {
+                return $book;
+            })
+        );
+
+        $genres = Genre::all();
+
+        return view('books.index', [
+            'books' => $books,
+            'filters' => $request->all(),
+            'genres' => $genres,
+        ]);
+    }
+
+    /**
+     * ISBNコードから書籍情報を非同期検索してJSONで返却します。
+     *
+     * @param  string  $isbn  13桁のISBNコード
+     * @param  GoogleBooksService  $googleBooksService  外部API通信用サービス
+     * @return JsonResponse 書籍情報のJSONレスポンス
+     */
+    public function searchByIsbn(string $isbn, GoogleBooksService $googleBooksService): JsonResponse
+    {
+        $result = $googleBooksService->fetchByIsbn($isbn);
+
+        return response()->json($result['data'], 200);
     }
 
     /**
