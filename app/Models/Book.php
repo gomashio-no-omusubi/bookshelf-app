@@ -39,7 +39,7 @@ class Book extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'published_date' => 'date',
+        'published_date' => 'date:Y-m-d',
     ];
 
     public function reviews(): HasMany
@@ -60,6 +60,11 @@ class Book extends Model
     public function favoritedByUsers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'favorites');
+    }
+
+    public function readingPlans(): HasMany
+    {
+        return $this->hasMany(ReadingPlan::class);
     }
 
     /**
