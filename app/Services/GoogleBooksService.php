@@ -10,12 +10,11 @@ class GoogleBooksService
      * Google Books APIからISBNを用いて書籍情報を取得します。
      *
      * @param  string  $isbn  13桁のISBNコード
-     * @return array
      */
     public function fetchByIsbn(string $isbn): array
     {
         try {
-            $params = ['q' => 'isbn:' . $isbn];
+            $params = ['q' => 'isbn:'.$isbn];
 
             if ($apiKey = config('services.google.books_api_key')) {
                 $params['key'] = $apiKey;

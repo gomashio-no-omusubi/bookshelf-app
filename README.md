@@ -2,357 +2,303 @@
 
 ## プロジェクト概要
 
-未完成
+本プロジェクトは、お気に入りの書籍を管理し、レビューや読書計画の作成、レポート集計、期日通知を行うことができる「書籍レビュー管理システム（BookShelf）」です。
+標準的なWeb画面機能（Laravel Breeze）に加え、外部API（Google Books API）を用いたISBN書籍検索や、日次バッチ処理（Artisanコマンド）による期限切れ読書計画の自動失効、Laravel Sanctumを用いたモバイルアプリ・外部連携向けのセキュアなAPIトークン認証基盤（v1）を網羅した、堅牢なバックエンドシステムとして構築されています。
 
 ## 作成者
 
-- [あなたの名前、またはGitHubユーザー名]
+- gomashio-no-omusubi
 
-## 使用技術（技術スタック）
+## 使用技術（実行環境）
 
-- **言語**: PHP 8.5
-- **フレームワーク**: Laravel 10.x
-- **データベース**: MySQL 8.4
-- **フロントエンド**: Vite, Tailwind CSS ^3.4.0, @tailwindcss/forms
+- **PHP**: 8.2.x（※スプレッドシート指定要件: 8.5 / Laravel Sail標準環境の実態に準拠）
+- **Laravel**: 10.x（明示的指定による構築）
+- **MySQL**: 8.0.x（※スプレッドシート指定要件: 8.4 / Laravel Sail明示指定コンテナの実態に準拠）
+- **nginx**: 1.25.x / Sail内蔵環境
+- **フロントエンド**: Vite, Tailwind CSS ^3.4.0, @tailwindcss/forms, Alpine.js
 - **開発ツール**: Docker, Laravel Sail, phpMyAdmin
-- **構成管理**: Docker / Docker Compose
 
-## 開発環境URL
+## 開発環境アクセスURL
 
-- **アプリケーション**: http://localhost
-- **phpMyAdmin**: http://localhost:8080
+- **書籍一覧画面（トップ）** : http://localhost/
+- **会員登録画面** : http://localhost/register
+- **ログイン画面** : http://localhost/login
+- **phpMyAdmin** : http://localhost:8080/
 
 ## ER図
 
-[※ 基本機能が完成した段階、またはER図を作成したタイミングで、ここにMermaid記法や画像のリンクを貼り付けてください]
+```mermaid
+erDiagram
+    users {
+        bigint_unsigned id PK
+        varchar name
+        varchar email UK
+        timestamp email_verified_at "NULL"
+        varchar password
+        varchar remember_token "NULL"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    genres {
+        bigint_unsigned id PK
+        varchar name UK
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    books {
+        bigint_unsigned id PK
+        bigint_unsigned user_id FK
+        varchar title
+        varchar author
+        varchar isbn UK
+        varchar published_date "NULL"
+        text description "NULL"
+        varchar image_url "NULL"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    book_genre {
+        bigint_unsigned id PK
+        bigint_unsigned book_id FK
+        bigint_unsigned genre_id FK
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    reviews {
+        bigint_unsigned id PK
+        bigint_unsigned user_id FK "UK(user,book)"
+        bigint_unsigned book_id FK "UK(user,book)"
+        tinyint_unsigned rating
+        text comment
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    favorites {
+        bigint_unsigned id PK
+        bigint_unsigned user_id FK "UK(user,book)"
+        bigint_unsigned book_id FK "UK(user,book)"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    review_likes {
+        bigint_unsigned id PK
+        bigint_unsigned user_id FK "UK(user,review)"
+        bigint_unsigned review_id FK "UK(user,review)"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    reading_plans {
+        bigint_unsigned id PK
+        bigint_unsigned user_id FK
+        bigint_unsigned book_id FK
+        date target_date
+        varchar status "default:unread"
+        timestamp created_at
+        timestamp updated_at
+        timestamp completed_at "NULL"
+    }
+
+    notifications {
+        uuid id PK
+        varchar type
+        varchar notifiable_type "ポリモーフィック型"
+        bigint_unsigned notifiable_id "ポリモーフィックID"
+        text data
+        timestamp read_at "NULL"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    users ||--o{ books : ""
+    books ||--|{ book_genre : ""
+    genres ||--o{ book_genre : ""
+    users ||--o{ reviews : ""
+    books ||--o{ reviews : ""
+    users ||--o{ favorites : ""
+    books ||--o{ favorites : ""
+    users ||--o{ review_likes : ""
+    reviews ||--o{ review_likes : ""
+    users ||--o{ reading_plans : ""
+    books ||--o{ reading_plans : ""
+    users ||--o{ notifications : ""
+```
+
+## APIエンドポイント一覧
+
+本システムが提供している外部アプリケーション向け公開API（JSON）の仕様一覧です。
+スプレッドシートの仕様に準拠し、基礎段階の挙動（認証不要）を残しつつ、応用段階として書き込み系リクエスト（POST/PUT/DELETE）に対して Laravel Sanctum によるAPIトークン認証およびポリシー認可（BookPolicy）を徹底しています。
+
+| HTTPメソッド | URI                    | 説明               | 認証 | 認証（応用）                           |
+| :----------- | :--------------------- | :----------------- | :--- | :------------------------------------- |
+| **GET**      | `/api/v1/books`        | 書籍一覧を取得する | 不要 | 不要                                   |
+| **GET**      | `/api/v1/books/{book}` | 書籍詳細を取得する | 不要 | 不要                                   |
+| **POST**     | `/api/v1/books`        | 書籍を新規登録する | 不要 | **★Sanctum 必須**                      |
+| **PUT**      | `/api/v1/books/{book}` | 書籍を更新する     | 不要 | **★Sanctum + BookPolicy (所有者のみ)** |
+| **DELETE**   | `/api/v1/books/{book}` | 書籍を削除する     | 不要 | **★Sanctum + BookPolicy (所有者のみ)** |
+
+### 🔑 認証ヘッダー仕様（応用リクエスト時）
+
+応用段階の認証必須エンドポイント（`POST/PUT/DELETE`）へアクセスする際は、リクエストヘッダーに必ず以下を含めて通信を行ってください。
+
+```http
+Authorization: Bearer <発行したAPIトークン>
+Accept: application/json
+```
 
 ---
 
 ## 開発環境構築手順
 
-### 1.Laravelプロジェクトの作成 (Laravel 10.x)
+本プロジェクトをローカル環境にクローンし、Laravel Sailを用いてアプリケーションを起動する手順です。  
+_※ Windows環境をお使いの方は、必ず `WSL（Ubuntu）` のターミナルで実行してください（`PowerShell` では動きません）。_
 
-以下のDockerコマンドを実行して、Laravel 10.xを明示的に指定してプロジェクトを作成します。
+### 1. リポジトリのクローンとディレクトリ移動
+
+任意の作業ディレクトリで以下を実行し、プロジェクトディレクトリへ移動します。
+
+#### 1-1. リポジトリをクローン
 
 ```bash
-docker run --rm \
-    -u "$(id -u):$(id -g)" \
-    -v "$(pwd):/var/www/html" \
-    -w /var/www/html \
-    -e COMPOSER_CACHE_DIR=/tmp/composer_cache \
-    laravelsail/php82-composer:latest \
-    composer create-project laravel/laravel:^10.0 task-manager-app
-
+git clone git@github.com:gomashio-no-omusubi/bookshelf-app.git
 ```
 
-_※ **Windowsをお使いの方へ**：以下のコマンドは `WSL（Ubuntu）` のターミナルで実行してください（`PowerShell` では動きません）。_
-
-### 2. Laravel Sailのインストール
-
-プロジェクト作成後、`bookshelf-app` ディレクトリに移動し、Laravel Sailをインストールします。
+#### 1-2. 作成したディレクトリに移動
 
 ```bash
-# プロジェクトディレクトリに移動
 cd bookshelf-app
+```
 
-# Laravel Sailをインストール
+### 2. 各種依存ライブラリの一括インストール (Composer)
+
+Docker（一時コンテナ）経由で、プロジェクトに必要なLaravelの実行パッケージ（Breeze, Sanctum等含む）を一括インストールします。
+
+```bash
 docker run --rm \
     -u "$(id -u):$(id -g)" \
     -v "$(pwd):/var/www/html" \
     -w /var/www/html \
-    -e COMPOSER_CACHE_DIR=/tmp/composer_cache \
     laravelsail/php82-composer:latest \
-    composer require laravel/sail --dev
-
-# Sailの設定ファイルをパブリッシュ (MySQLを選択)
-docker run --rm \
-    -u "$(id -u):$(id -g)" \
-    -v "$(pwd):/var/www/html" \
-    -w /var/www/html \
-    -e COMPOSER_CACHE_DIR=/tmp/composer_cache \
-    laravelsail/php82-composer:latest \
-    php artisan sail:install --with=mysql
+    composer install
 ```
 
-_※ **M1/M2/M3 Mac (Apple Silicon) をお使いの方へ**：Apple Silicon搭載のMacでは、`sail up -d` 実行時に `no matching manifest for linux/arm64/v8` エラーが発生する場合があります。その際は、`compose.yaml` を開き、 `mysql` サービスに `platform: 'linux/amd64'` を追加してください。_
+### 3. 環境設定ファイル (.env) の作成と確認
 
-```yaml
-mysql:
-    image: "mysql/mysql-server:8.0"
-    platform: "linux/amd64" # ← この行を追加
-    ports: ...
+提供されている雛形をコピーして `.env` ファイルを作成します。
+
+```bash
+cp .env.example .env
 ```
 
-_編集後、保存してから `sail up -d` を実行してください。_
+#### 3-1. データベース接続情報の設定確認
 
-### 3. .env ファイルの設定
-
-`.env` ファイルを開き、データベース接続情報が以下と一致していることを確認します。
+`.env` ファイルを開き、データベースの接続情報が以下（スプレッドシート指定値）と一致していることを確認・変更してください。
 
 ```env
 DB_CONNECTION=mysql
 DB_HOST=mysql
 DB_PORT=3306
-DB_DATABASE=bookshelf_app
+DB_DATABASE=laravel
 DB_USERNAME=sail
 DB_PASSWORD=password
+
+# 外部API連携設定（Google Books API）
+GOOGLE_BOOKS_API_KEY=dummy_key_value
 ```
 
-_**【重要】**：`DB_HOST` には `localhost` や `127.0.0.1` ではなく、必ずDockerのコンテナ名である **`mysql`** を指定してください。これを間違えると、データベースへの接続エラーが発生し、アプリケーションが正常に動作しません。_
+> **【重要】** `DB_HOST` には `localhost` や `127.0.0.1` ではなく、必ずDockerのコンテナ名である `mysql` 指定してください。
 
-### 4. フロントエンドのセットアップ (Vite & Tailwind CSS)
+### 4. アプリケーションキーの生成
 
-本プロジェクトでは、フロントエンドのスタイリングにTailwind CSSを使用します。  
-以下の手順でセットアップを行ってください。
-
-#### 4-1. NPM依存パッケージのインストール
+暗号化に必要なアプリケーションキーを生成します。
 
 ```bash
-sail npm install
+docker run --rm \
+    -u "$(id -u):$(id -g)" \
+    -v "$(pwd):/var/www/html" \
+    -w /var/www/html \
+    laravelsail/php82-composer:latest \
+    php artisan key:generate
 ```
 
-_※ Sailコンテナが起動していることを確認。起動していない場合は `./vendor/bin/sail up -d`を実行_
+### 5. Laravel Sail の起動とエイリアス設定
 
-#### 4-2. Alpine.jsのインストール
-
-```bash
-sail npm install alpinejs
-```
-
-#### 4-3. Tailwind CSSと @tailwindcss/forms プラグインのインストール
-
-```bash
-sail npm install -D tailwindcss@^3.4.0 @tailwindcss/forms postcss autoprefixer
-```
-
-_※ `@tailwindcss/forms` はフォーム要素のスタイルをリセットするLaravel標準プラグインです。_
-
-#### 4-4. 設定ファイルの生成
-
-```bash
-sail npx tailwindcss init -p
-```
-
-#### 4-5. Tailwind CSSのテンプレートパス設定とforms プラグインの有効化
-
-`tailwind.config.js` を開き、中身を以下の内容に書き換えて保存してください。
-
-```javascript
-import defaultTheme from "tailwindcss/defaultTheme";
-import forms from "@tailwindcss/forms";
-
-/** @type {import('tailwindcss').Config} */
-export default {
-    content: [
-        "./vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php",
-        "./storage/framework/views/*.php",
-        "./resources/views/**/*.blade.php",
-    ],
-    theme: {
-        extend: {
-            fontFamily: {
-                sans: ["Figtree", ...defaultTheme.fontFamily.sans],
-            },
-        },
-    },
-    plugins: [forms],
-};
-```
-
-#### 4-6. Vite開発サーバーの起動
-
-デザイン（`CSS/JavaScript`）をリアルタイムで反映させるため、以下のコマンドを実行して開発サーバーを起動します。
-
-```bash
-sail npm run dev
-```
-
-_**【重要】**：アプリケーションのデザインを正しく表示させるため、 **開発中は常にこのコマンドを実行した状態（ターミナルを起動したまま）** にしておいてください。_
-
-### 5. phpMyAdminの追加
-
-`compose.yaml` を開き、`mysql` サービスの後に以下の設定を追加してください。
-
-```yaml
-phpmyadmin:
-    image: "phpmyadmin:latest"
-    ports:
-        - "${FORWARD_PHPMYADMIN_PORT:-8080}:80"
-    environment:
-        PMA_HOST: mysql
-        PMA_USER: "${DB_USERNAME}"
-        PMA_PASSWORD: "${DB_PASSWORD}"
-    networks:
-        - sail
-    depends_on:
-        - mysql
-```
-
-_**【重要】**：YAMLファイルはインデント（字下げ）がずれると正しく動作しません。`phpmyadmin:` の左側のスペース数を、既にある `mysql:` と同じに揃えてください。_
-
-### 6. Sailの起動とエイリアス設定
-
-#### 6-1. Sailをバックグラウンドで起動
+#### 5-1. Sailをバックグラウンドで起動
 
 ```bash
 ./vendor/bin/sail up -d
 ```
 
-#### 6-2. エイリアスを設定
+_※ **M1/M2/M3 Mac (Apple Silicon) をお使いの方へ**：`sail up -d` 実行時にエラーが発生する場合は、`compose.yaml` を開き、 `mysql` サービスに `platform: 'linux/amd64'` が追加されていることを確認した上で再度実行してください。_
 
-毎回 `./vendor/bin/sail` と入力するのは面倒なので、エイリアスを設定します。
+#### 5-2. エイリアスを設定
 
-**Zsh（Mac）の場合：**
+毎回 `./vendor/bin/sail` と入力するのは避けるため、エイリアスを設定して `sail` だけで実行可能にします。
 
 ```bash
-# エイリアスを設定して 'sail' だけでコマンドを実行できるようにする
+# Zsh (Mac) の場合
 echo "alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'" >> ~/.zshrc
-
-# シェルを再起動するか、新しいターミナルを開いてエイリアスを有効にする
 exec $SHELL
-```
 
-**Bash（Linux）の場合：**
-
-```bash
-# エイリアスを設定して 'sail' だけでコマンドを実行できるようにする
+# Bash (Linux/WSL) の場合
 echo "alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'" >> ~/.bashrc
-
-# シェルを再起動するか、新しいターミナルを開いてエイリアスを有効にする
 exec $SHELL
 ```
 
-### 7. アプリケーションキーの生成
+### 6. フロントエンドのセットアップ (Vite & Tailwind CSS)
+
+すでに設定済みのTailwind CSSおよびViteの環境をビルドします。
 
 ```bash
-sail artisan key:generate
+# パッケージのインストール
+sail npm install
+
+# フロントエンドのビルド
+sail npm run build
 ```
 
-### 8. データベースのマイグレーションと初期データ投入
+_※ デザインをリアルタイムで反映させながら開発を行う場合は、別途 `sail npm run dev` を実行してください。_
+
+### 7. データベースのマイグレーションと初期データ投入
 
 アプリケーションを動作させる環境（開発環境）と、PHPUnitを実行する環境（テスト環境）のそれぞれでマイグレーションを行います。
 
-#### 8-1. 開発環境用のマイグレーション
-
-ブラウザで画面の動作確認などを行うための通常のデータベース構築です。以下のコマンドでテーブルを作成し、初期データを投入します。
+#### 7-1. 開発環境用のマイグレーション
 
 ```bash
-# テーブルの作成と初期データ投入
-sail artisan migrate --seed
-
-# 既存のデータベースを完全にリセットして再構築したい場合
+# 既存のデータベースを完全にリセットして再構築・シード投入
 sail artisan migrate:fresh --seed
 ```
 
-#### 8-2. テスト環境用のマイグレーション（PHPUnit用）
-
-本プロジェクトで PHPUnit テストを実行する際は、開発用とは別のテスト専用データベース（`testing`）を使用します。以下のコマンドを実行してテスト用の環境構築を行ってください（※自動で接続されるため、パスワードの手動入力は不要です）。
+#### 7-2. テスト環境用のマイグレーション（PHPUnit用）
 
 ```bash
 # テスト環境のデータベースを初期化し、シードを投入
 sail artisan migrate:fresh --env=testing --seed
+```
 
-# テストの実行
+#### 7-3. テストの実行
+
+環境構築が正常に完了したかを確認するため、以下のコマンドですべてのテストが **PASS** することを確認してください。
+
+```bash
 sail artisan test
 ```
 
-_**※ 日本語化（バリデーション・認証メッセージ）について（基本）**： `config/app.php` の `locale` を `ja` にし、`lang/ja/` にメッセージファイルを手動配置して行います。`laravel-lang/lang` などの `laravel-lang/*` 系パッケージ（`composer require laravel-lang/...`）は導入しないでください。同系パッケージは 2026年5月のサプライチェーン攻撃でマルウェア配布に悪用された経緯があります。_
+### 📋 本プロジェクトの組み込み済み仕様（自動で適用されます）
 
-### 💡 応用フェーズ認証基盤（Laravel Sanctum）のセットアップ
+以下の機能・基盤はすべてリポジトリ内に実装が完了しているため、上記の基本環境構築手順（`composer install` および `migrate:fresh --seed`）を実行するだけで、追加の操作なしで自動的にセットアップが完了します。
 
-新しくAPIトークン認証を導入したため、ローカル環境を立ち上げる際は、通常のマイグレーションに加えて以下のコマンドを順に実行してください。
-
-1. Sanctumパッケージのインストール（依存関係の解決）
-
-```bash
-sail composer require laravel/sanctum
-```
-
-2. Sanctum初期設定ファイルの生成（マイグレーションファイルの準備）
-
-```bash
-sail artisan vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"
-```
-
-※後続の応用テーブルと一括で再構築するため、マイグレーションはここではまだ実行しません。
-
-## 使用技術（実行環境）
-
-- **PHP**: 8.2.x (Laravel Sail 標準環境)
-- **Laravel**: 10.x (明示的指定による構築)
-- **MySQL**: 8.0.x (Laravel Sail 明示指定によるコンテナ構築)
-- **nginx**: 1.25.x / Sail内蔵環境 (リクエスト処理・ポートバインディング制御)
-- **認証基盤 (Web)**: Laravel Breeze / 標準セッション認証
-- **認証基盤 (API)**: Laravel Sanctum (APIトークン認証)
-
-### 応用フェーズ認証基盤（Laravel Sanctum）のセットアップ
-
-新しくAPIトークン認証を導入したため、ローカル環境を立ち上げる際は、通常のマイグレーションに加えて以下のコマンドを順に実行してください。
-
-1. Sanctumパッケージのインストール（依存関係の解決）
-
-```bash
-sail composer require laravel/sanctum
-```
-
-2. Sanctum初期設定ファイルの生成（マイグレーションファイルの準備）
-
-```bash
-sail artisan vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"
-```
-
-※後続の応用テーブルと一括で再構築するため、マイグレーションはここではまだ実行しません。
-
-### ■ 外部API連携（Google Books API）の設計・設定
-
-タスク13の「書籍機能の応用拡張」にて導入するISBN検索機能のため、以下の外部API連携の基盤設計をあらかじめ定義しています。
-
-1. 環境変数の定義（`.env`）
-   ローカル環境および本番環境の環境変数として以下を定義します（実際のAPIキー値は各環境に応じて設定）。
-
-```env
-GOOGLE_BOOKS_API_KEY=dummy_key_value
-```
-
-2. 構成設定の集中管理（`config/services.php`）
-   セキュリティと設定キャッシュ（`config:cache`）の動作安定性を担保するため、プログラム内から `env()` 関数を直接呼び出すことを禁止し、必ず以下の設定配列を経由して型安全に値を管理します。
-
-```php
-'google' => [
-    'books_api_key' => env('GOOGLE_BOOKS_API_KEY'),
-],
-```
-
-3. 通信仕様
-   外部APIとのセキュアな通信には、Laravel標準のHTTPクライアントファサード（`Illuminate\Support\Facades\Http`）を一貫して使用し、エラーハンドリングとソート・フィルタ制御をカプセル化します。
-
-## ER図
-
-![ER図](flea-market-app.drawio.png)
-
-## 開発環境
-
-### アクセスURL
-
-- **商品一覧画面（トップ）** : http://localhost/
-- **会員登録画面** : http://localhost/register
-- **ログイン画面** : http://localhost/login
-- **phpMyAdmin** : http://localhost:8080/
-- **MailHog（受信用ダッシュボード）** : http://localhost:8025/
-
-### メール認証機能（FN012・FN013）の確認手順
-
-上記のテスト用アカウントはすべて認証済み状態となっています。
-新規登録時のメール認証や、認証メール再送機能の挙動を確認する際は、以下の手順で行ってください。
-
-1. トップページの「会員登録」から、任意のメールアドレスで新規アカウントを作成する。
-2. 登録完了後、自動的にメール認証待ち画面に遷移する。
-3. ブラウザで [MailHog](http://localhost:8025/) を開く。
-4. 送信された「Verify Email Address（メールアドレスを確認する）」というメールを開き、本文内の認証リンクをクリックする。
-5. 認証が完了し、プロフィール設定画面に遷移することを確認する。
-
-_※ `.env` ファイルのメール設定（MAIL_HOST=mailhog, MAIL_PORT=1025 等）は、docker-composeの起動時点で自動的に適用されるようになっています。_
-
-```
-
-```
+- **日本語化対応 (バリデーション・認証メッセージ)**
+    - `config/app.php` の `locale` を `ja` に設定し、`lang/ja/` にメッセージファイルを手動配置しています。
+    - **【セキュリティ対策】** 外部の `laravel-lang/*` 系パッケージは一切導入せず、安全な手動管理を行っています。
+- **API認証基盤 (Laravel Sanctum)**
+    - 応用フェーズ用のAPIトークン認証（Sanctum）の依存関係、設定ファイル、マイグレーションはすべてプロジェクト内に組み込み済みです。
+- **外部API連携 (Google Books API)**
+    - ISBN検索機能のための基盤設計（`config/services.php` 経由の集中管理）が組み込まれています。`.env` の `GOOGLE_BOOKS_API_KEY` を読み込んで安全に動作します。

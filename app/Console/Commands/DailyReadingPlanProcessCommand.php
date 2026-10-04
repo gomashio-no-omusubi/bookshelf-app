@@ -57,7 +57,6 @@ class DailyReadingPlanProcessCommand extends Command
                         'message' => $daysMap->get($diffDays),
                         'target_date' => $plan->target_date->toDateString(),
                     ];
-
                     Notification::send($plan->user, new ReadingReminderNotification($notificationData));
                 }
             });

@@ -37,14 +37,13 @@ class ReadingReminderNotification extends Notification
      * notificationsテーブルのdataカラムに格納する配列を返す
      *
      * @param  mixed  $notifiable
-     * @return array
      */
-    public function toArray($notifiable)
+    public function toArray($notifiable): array
     {
         return [
-            'book_title' => $this->details['book_title'],
-            'message' => $this->details['message'],
-            'target_date' => $this->details['target_date'],
+            'title' => '【'.($this->details['book_title'] ?? '書籍').'】',
+            'body' => $this->details['message'] ?? '',
+            'target_date' => $this->details['target_date'] ?? '-',
         ];
     }
 }
