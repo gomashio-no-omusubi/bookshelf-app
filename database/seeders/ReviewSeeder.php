@@ -10,37 +10,45 @@ use Illuminate\Database\Seeder;
 class ReviewSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * アプリケーションの初期レビューデータをデータベースに投入します。
+     * 各書籍に対してランダムに選ばれた複数ユーザーから2〜4件のレビューを生成し、
+     * 評価値（1〜5）に応じた日本語コメントテンプレートを割り当てます。
+     *
+     * @param  void  引数はありません
+     * @return void 戻り値はありません
      */
     public function run(): void
     {
         $users = User::all();
         $books = Book::all();
 
-        $comments = [
-            'とても読みやすくて、一気に読んでしまいました！',
-            '実務に直結する知識が多く、非常に勉強になりました。',
-            '初心者向けに丁寧に解説されていて分かりやすかったです。',
-            '少し難しい部分もありましたが、学びが多かったです。',
-            '図解が豊富で良かったです。何度も読み返します。',
-        ];
+        $templates = collect([
+            5 => collect(['素晴らしい本でした！', '人生が変わりました。', '何度も読み返しています。']),
+            4 => collect(['とても参考になりました。', '読みやすくておすすめです。', '期待通りの内容でした。']),
+            3 => collect(['普通でした。', '可もなく不可もなく。', '期待したほどではなかった。']),
+            2 => collect(['少し期待外れでした。', '内容が薄い印象。', 'もう少し深掘りしてほしかった。']),
+            1 => collect(['残念ながら合いませんでした。', '期待と違いました。']),
+        ]);
 
-        $reviewDistribution = [4, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2]; // 4件が1冊、3件が8冊、2件が2冊 ＝ 合計32件（すべて「2～4件」の範囲内）
+        $books->each(
+            function (Book $book) use ($users, $templates) {
 
-        foreach ($books as $book) {
+                $reviewCount = rand(2, 4);
 
-            $count = array_shift($reviewDistribution);
+                $reviewers = $users->random(min($reviewCount, $users->count()));
 
-            $reviewers = $users->random(min($count ?? 0, $users->count()));
+                $reviewers->each(function (User $reviewer) use ($book, $templates) {
 
-            foreach ($reviewers as $reviewer) {
-                Review::create([
-                    'book_id' => $book->id,
-                    'user_id' => $reviewer->id,
-                    'rating' => rand(3, 5),
-                    'comment' => collect($comments)->random(),
-                ]);
+                    $rating = rand(1, 5);
+
+                    Review::create([
+                        'book_id' => $book->id,
+                        'user_id' => $reviewer->id,
+                        'rating' => $rating,
+                        'comment' => $templates->get($rating)->random(),
+                    ]);
+                });
             }
-        }
+        );
     }
 }
