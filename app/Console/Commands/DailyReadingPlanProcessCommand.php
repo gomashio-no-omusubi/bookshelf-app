@@ -16,7 +16,7 @@ class DailyReadingPlanProcessCommand extends Command
     protected $signature = 'reading-plan:daily-process';
 
     /** @var string コマンドの説明 */
-    protected $description = '期限切れ読書計画の自動失効処理および日数に応じたリマインダー通知の送信をトランザクション下で行います';
+    protected $description = '期限切れ読書計画の自動失効処理、および各種タイミング（3日前・当日・3日後）に応じたリマインダー通知を行います';
 
     /**
      * コマンドの実行ロジック
@@ -33,35 +33,42 @@ class DailyReadingPlanProcessCommand extends Command
                 ->where('target_date', '<', $today)
                 ->update(['status' => ReadingPlanStatus::EXPIRED]);
 
-            $daysMap = collect([
-                0 => '本日が読書計画の目標期日です。',
-                3 => '読書計画の目標期日まで残り3日です。',
-                7 => '読書計画の目標期日まで残り7日です。',
+            $targetDates = collect([
+                $today->copy()->addDays(3)->toDateString(),
+                $today->toDateString(),
+                $today->copy()->subDays(3)->toDateString(),
             ]);
 
-            $targetDates = $daysMap->keys()->map(function ($days) use ($today) {
-                return $today->copy()->addDays($days)->toDateString();
-            });
-
-            $plans = ReadingPlan::where('status', ReadingPlanStatus::IN_PROGRESS)
-                ->whereIn('target_date', $targetDates->toArray())
+            $plans = ReadingPlan::whereIn('status', [ReadingPlanStatus::IN_PROGRESS, ReadingPlanStatus::EXPIRED])
+                ->whereIn('target_date', $targetDates)
                 ->with(['user', 'book'])
                 ->get();
 
-            $plans->each(function ($plan) use ($today, $daysMap) {
-                $diffDays = $today->diffInDays(Carbon::parse($plan->target_date), false);
+            $plans->map(function ($plan) use ($today) {
+                $targetDate = Carbon::parse($plan->target_date)->startOfDay();
+                $todayDate = $today->copy()->startOfDay();
 
-                if ($daysMap->has($diffDays)) {
-                    $notificationData = [
-                        'book_title' => $plan->book->title,
-                        'message' => $daysMap->get($diffDays),
-                        'target_date' => $plan->target_date->toDateString(),
-                    ];
-                    Notification::send($plan->user, new ReadingReminderNotification($notificationData));
-                }
-            });
+                $diffDays = $todayDate->diffInDays($targetDate, false);
+
+                $type = match ($diffDays) {
+                    3 => 'before_3_days',
+                    0 => 'today',
+                    -3 => 'after_3_days',
+                    default => null,
+                };
+
+                return $type ? [
+                    'user' => $plan->user,
+                    'title' => $plan->book->title,
+                    'type' => $type,
+                ] : null;
+            })
+                ->filter()
+                ->groupBy('type')
+                ->flatMap(fn ($groupedPlans) => $groupedPlans)
+                ->map(fn ($item) => Notification::send($item['user'], new ReadingReminderNotification($item['title'], $item['type'])));
         });
 
-        $this->info('読書計画の自動失効およびNotificationファサードによるリマインダー通知送信が正常に完了しました。');
+        $this->info('読書計画の自動失効およびリマインダー通知の送信が正常に完了しました。');
     }
 }
