@@ -118,7 +118,7 @@ erDiagram
 
     users ||--o{ books : ""
     books ||--|{ book_genre : ""
-    genres ||--o{ book_genre : ""
+    genres ||--|{ book_genre : ""
     users ||--o{ reviews : ""
     books ||--o{ reviews : ""
     users ||--o{ favorites : ""
