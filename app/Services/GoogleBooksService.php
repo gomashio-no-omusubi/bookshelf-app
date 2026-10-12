@@ -3,74 +3,93 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class GoogleBooksService
 {
     /**
-     * Google Books APIからISBNを用いて書籍情報を取得します。
+     * Google Books APIからISBNを用いて書籍情報を実際に取得します。
      *
-     * @param  string  $isbn  13桁のISBNコード
+     * @param  string  $isbn  ISBNコード
+     * @return array 書籍情報のフラットな配列、またはエラー配列
      */
     public function fetchByIsbn(string $isbn): array
     {
         try {
-            $params = ['q' => 'isbn:'.$isbn];
+            if (empty($isbn)) {
+                return [
+                    'error' => '書籍が見つかりませんでした。',
+                ];
+            }
 
-            if ($apiKey = config('services.google.books_api_key')) {
+            $baseUrl = 'https://www.googleapis.com/books/v1/volumes';
+            $params = [
+                'q' => 'isbn:'.$isbn,
+            ];
+
+            $apiKey = config('services.google.books_api_key');
+            if (! empty($apiKey)) {
                 $params['key'] = $apiKey;
             }
 
-            $response = Http::withoutVerifying()->get('https://www.googleapis.com/books/v1/volumes', $params);
+            $response = Http::withoutVerifying()
+                ->retry(3, 1000)
+                ->get($baseUrl, $params);
 
             if ($response->failed()) {
-                $responseBody = $response->body();
-
-                if ($response->status() === 429 || str_contains($responseBody, 'Quota exceeded') || str_contains($responseBody, 'RESOURCE_EXHAUSTED')) {
-                    return [
-                        'status' => 200,
-                        'data' => ['error' => 'Google Books APIの利用制限に達しました。時間を置いて再度お試しください。'],
-                    ];
-                }
-
-                if (str_contains($responseBody, 'API key not valid')) {
-                    return [
-                        'status' => 200,
-                        'data' => ['error' => 'Google Books APIの認証に失敗しました。環境設定（APIキー）を確認してください。'],
-                    ];
-                }
+                Log::error('Google Books API通信エラーが発生しました。');
 
                 return [
-                    'status' => 200,
-                    'data' => ['error' => 'Google Books APIとの通信に失敗しました。時間をおいて手動でお試しください。'],
+                    'error' => 'API通信エラーが発生しました。',
                 ];
             }
 
             $data = $response->json();
 
-            if (empty($data['items'])) {
+            if (isset($data['error'])) {
                 return [
-                    'status' => 200,
-                    'data' => ['error' => '該当する書籍情報が見つかりませんでした。'],
+                    'error' => 'API通信エラーが発生しました。',
                 ];
             }
 
-            $firstItem = $data['items'] ?? [];
-            $volumeInfo = $firstItem['volumeInfo'] ?? [];
+            if (empty($data['items']) || (isset($data['totalItems']) && $data['totalItems'] === 0)) {
+                return [
+                    'error' => '書籍が見つかりませんでした。',
+                ];
+            }
+
+            $volumeInfo = [];
+            if (isset($data['items'][0]['volumeInfo'])) {
+                $volumeInfo = $data['items'][0]['volumeInfo'];
+            } elseif (isset($data['items']['volumeInfo'])) {
+                $volumeInfo = $data['items']['volumeInfo'];
+            }
+
+            $rawDate = $volumeInfo['publishedDate'] ?? '';
+            $publishedDate = '';
+
+            if (! empty($rawDate)) {
+                if (preg_match('/^\d{4}$/', $rawDate)) {
+                    $publishedDate = $rawDate.'-01-01';
+                } elseif (preg_match('/^\d{4}-\d{2}$/', $rawDate)) {
+                    $publishedDate = $rawDate.'-01';
+                } else {
+                    $publishedDate = substr($rawDate, 0, 10);
+                }
+            }
 
             return [
-                'status' => 200,
-                'data' => [
-                    'title' => $volumeInfo['title'] ?? '',
-                    'author' => isset($volumeInfo['authors']) ? implode(', ', $volumeInfo['authors']) : '',
-                    'description' => $volumeInfo['description'] ?? '',
-                    'image_url' => $volumeInfo['imageLinks']['thumbnail'] ?? '',
-                    'published_date' => $volumeInfo['publishedDate'] ?? null,
-                ],
+                'title' => $volumeInfo['title'] ?? '',
+                'author' => isset($volumeInfo['authors']) ? implode(', ', $volumeInfo['authors']) : '',
+                'description' => $volumeInfo['description'] ?? '',
+                'image_url' => $volumeInfo['imageLinks']['thumbnail'] ?? '',
+                'published_date' => $publishedDate,
             ];
         } catch (\Exception $e) {
+            Log::error('Google Books API例外発生: '.$e->getMessage());
+
             return [
-                'status' => 200,
-                'data' => ['error' => 'システムエラーが発生しました。時間を置いて再度お試しください。'],
+                'error' => 'API通信エラーが発生しました。',
             ];
         }
     }
