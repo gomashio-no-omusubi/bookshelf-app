@@ -18,6 +18,13 @@ class ReadingPlan extends Model
     use HasFactory;
 
     /**
+     * モデルに関連付けるテーブル名
+     *
+     * @var string
+     */
+    protected $table = 'reading_plans';
+
+    /**
      * 複数代入を許可する属性
      *
      * @var array<int, string>
@@ -52,9 +59,10 @@ class ReadingPlan extends Model
     }
 
     /**
-     * 指定されたステータスで読書計画を絞り込むスコープ
+     * 指定されたステータス（Enum）で読書計画を絞り込むスコープ
+     * 引数に Enum型 を指定することで安全性を確保します。
      */
-    public function scopeWithStatus(Builder $query, ?string $status): Builder
+    public function scopeWithStatus(Builder $query, ?ReadingPlanStatus $status): Builder
     {
         if (is_null($status)) {
             return $query;

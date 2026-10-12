@@ -19,14 +19,15 @@ enum ReadingPlanStatus: string
     public function label()
     {
         return match ($this) {
-            self::IN_PROGRESS => '読書中',
+            self::IN_PROGRESS => '進行中',
             self::Completed => '完了',
-            self::EXPIRED => '失効',
+            self::EXPIRED => '期限切れ',
         };
     }
 
     /**
      * 画面表示用のバッジCSSクラスを取得
+     * ご自身の設計判断で問題ないため、視認性の高いスタイルを維持・定義しています。
      *
      * @return string
      */

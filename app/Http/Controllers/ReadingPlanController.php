@@ -29,11 +29,13 @@ class ReadingPlanController extends Controller
     {
         $status = $request->query('status');
 
+        $statusEnum = filled($status) ? ReadingPlanStatus::tryFrom($status) : null;
+
         $readingPlans = $request->user()
             ->readingPlans()
             ->with('book')
-            ->withStatus($status)
-            ->paginate(10);
+            ->withStatus($statusEnum)
+            ->get();
 
         $currentStatus = $status;
 
@@ -67,7 +69,7 @@ class ReadingPlanController extends Controller
         ]);
 
         return redirect()->route('reading-plans.index')
-            ->with('success', '読書計画を登録しました。');
+            ->with('success', '読書計画を作成しました。');
     }
 
     /**
@@ -101,7 +103,7 @@ class ReadingPlanController extends Controller
         ]);
 
         return redirect()->route('reading-plans.index')
-            ->with('success', '読書計画の期日を更新しました。');
+            ->with('success', '読書計画を更新しました。');
     }
 
     /**
@@ -136,6 +138,6 @@ class ReadingPlanController extends Controller
         ]);
 
         return redirect()->route('reading-plans.index')
-            ->with('success', '読了しました。');
+            ->with('success', '読書計画を完了しました。');
     }
 }
