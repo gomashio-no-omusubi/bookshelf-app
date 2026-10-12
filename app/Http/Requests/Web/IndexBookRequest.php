@@ -33,7 +33,7 @@ class IndexBookRequest extends FormRequest
         return [
             'keyword' => ['nullable', 'string', 'max:255'],
             'genre' => ['nullable', 'integer', Rule::exists('genres', 'id')],
-            'sort' => ['nullable', 'string', 'in:newest,latest,oldest,title,rating'],
+            'sort' => ['nullable', 'string', 'in:newest,oldest,title,rating'],
             'page' => ['nullable', 'integer', 'min:1'],
         ];
     }
@@ -51,8 +51,6 @@ class IndexBookRequest extends FormRequest
 
             'genre_id.integer' => 'ジャンルIDは整数で指定してください。',
             'genre_id.exists' => '選択されたジャンルIDは存在しません。',
-
-            'sort.in' => '正しい並び順を選択してください。',
 
             'page.integer' => 'ページ番号は整数で指定してください。',
             'page.min' => 'ページ番号は1以上で指定してください。',
