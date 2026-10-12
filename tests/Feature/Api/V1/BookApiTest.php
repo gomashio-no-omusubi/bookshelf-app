@@ -139,7 +139,7 @@ class BookApiTest extends TestCase
         $response->assertStatus(404);
 
         $expectedErrorStructure = [
-            'message',
+            'error',
         ];
         $response->assertJsonStructure($expectedErrorStructure);
     }
@@ -291,7 +291,7 @@ class BookApiTest extends TestCase
         $response->assertStatus(404);
 
         $expectedErrorStructure = [
-            'message',
+            'error',
         ];
         $response->assertJsonStructure($expectedErrorStructure);
     }
@@ -343,7 +343,7 @@ class BookApiTest extends TestCase
         $response->assertStatus(404);
 
         $expectedErrorStructure = [
-            'message',
+            'error',
         ];
         $response->assertJsonStructure($expectedErrorStructure);
     }

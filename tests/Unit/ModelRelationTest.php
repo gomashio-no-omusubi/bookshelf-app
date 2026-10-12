@@ -173,6 +173,83 @@ class ModelRelationTest extends TestCase
     }
 
     /* =========================================================================
+     * Book モデルのビジネスロジック・便利メソッドのテスト
+     * ========================================================================= */
+
+    // 書籍に対して既にレビューを投稿しているかの判定メソッドをテスト
+    public function test_book_is_reviewed_by_user()
+    {
+        $user = User::factory()->create();
+        $book = Book::factory()->create();
+
+        $this->assertFalse($book->isReviewedBy($user->id));
+
+        Review::factory()->create([
+            'user_id' => $user->id,
+            'book_id' => $book->id,
+        ]);
+
+        $this->assertTrue($book->isReviewedBy($user->id));
+    }
+
+    /* =========================================================================
+     * Book ローカルスコープのテスト（検索・ソート）
+     * ========================================================================= */
+
+    // 検索・フィルタ・各ソートロジックをすべて網羅
+    public function test_book_scope_search_and_sort_all_branches()
+    {
+        $user = User::factory()->create();
+        $genre = Genre::factory()->create();
+
+        $book1 = Book::factory()->create([
+            'title' => 'リンゴの絵本',
+            'author' => '佐藤',
+            'created_at' => now()->subDays(2),
+        ]);
+        $book2 = Book::factory()->create([
+            'title' => 'ミカンの小説',
+            'author' => '鈴木',
+            'created_at' => now()->subDay(),
+        ]);
+
+        $book1->genres()->attach($genre->id);
+
+        Review::factory()->create([
+            'user_id' => $user->id,
+            'book_id' => $book1->id,
+            'rating' => 5,
+        ]);
+
+        $resultKeyword = Book::query()->searchAndSort(['keyword' => 'リンゴ'])->get();
+        $this->assertTrue($resultKeyword->contains($book1));
+        $this->assertFalse($resultKeyword->contains($book2));
+
+        $resultGenre = Book::query()->searchAndSort(['genre' => $genre->id])->get();
+        $this->assertTrue($resultGenre->contains($book1));
+
+        Book::query()->searchAndSort(['sort' => 'oldest'])->get();
+        Book::query()->searchAndSort(['sort' => 'title'])->get();
+        Book::query()->searchAndSort(['sort' => 'rating'])->get();
+        Book::query()->searchAndSort(['sort' => 'latest'])->get();
+
+        Book::with(['user', 'genres', 'reviews'])->get()->each(function (Book $bookItem) {
+            $this->assertTrue($bookItem->relationLoaded('user'));
+            $this->assertTrue($bookItem->relationLoaded('genres'));
+            $this->assertTrue($bookItem->relationLoaded('reviews'));
+        });
+
+        $reportSample = Book::with(['genres'])->get();
+
+        $groupedData = $reportSample->flatMap->genres
+            ->groupBy('id')
+            ->map(fn ($genres) => $genres->count());
+
+        $this->assertTrue($groupedData->has($genre->id));
+        $this->assertEquals(1, $groupedData->get($genre->id));
+    }
+
+    /* =========================================================================
      * Review モデルのリレーションテスト
      * ========================================================================= */
 

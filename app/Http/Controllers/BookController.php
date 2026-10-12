@@ -31,12 +31,6 @@ class BookController extends Controller
             ->paginate(10)
             ->appends($request->query());
 
-        $books->setCollection(
-            $books->getCollection()->map(function (Book $book): Book {
-                return $book;
-            })
-        );
-
         $genres = Genre::all();
 
         return view('books.index', [
@@ -57,7 +51,7 @@ class BookController extends Controller
     {
         $result = $googleBooksService->fetchByIsbn($isbn);
 
-        return response()->json($result['data'], 200);
+        return response()->json($result, 200);
     }
 
     /**
