@@ -22,7 +22,7 @@ class NotificationController extends Controller
      */
     public function index(Request $request): View
     {
-        $notifications = $request->user()->notifications()->paginate(10);
+        $notifications = $request->user()->notifications()->get();
 
         return view('notifications.index', compact('notifications'));
     }
@@ -41,6 +41,6 @@ class NotificationController extends Controller
 
         $notification->markAsRead();
 
-        return redirect()->back()->with('flash_message', '通知を既読にしました。');
+        return redirect()->back()->with('success', '通知を既読にしました。');
     }
 }
